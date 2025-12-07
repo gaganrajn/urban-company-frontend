@@ -510,7 +510,7 @@
         </div>
 
         <!-- Dashboard Section -->
-        <div id="dashboardSection" class="section" style="display:none;">
+        <div id="dashboardSection" class="section" style="display:block;">
             <div class="dashboard">
                 <!-- Sidebar -->
                 <aside class="sidebar">
@@ -687,38 +687,45 @@
         });
 
         document.getElementById('verifyOtpBtn').addEventListener('click', async () => {
-            const phone = document.getElementById('phoneInput').value;
-            const otp = document.getElementById('otpInput').value;
-            if (!otp || otp.length !== 6) {
-                showAlert('loginAlert', 'Please enter a valid 6-digit OTP', 'error');
-                return;
-            }
+  const phone = document.getElementById('phoneInput').value;
+  const otp = document.getElementById('otpInput').value;
+  
+  if (!otp || otp.length !== 6) {
+    showAlert('loginAlert', 'Please enter a valid 6-digit OTP', 'error');
+    return;
+  }
 
-            try {
-                const response = await fetch(`${API_BASE}/auth/verify-otp`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ phone, otp })
-                });
-                const data = await response.json();
-                if (data.success) {
-                    currentToken = data.token;
-                    currentUser = data.user;
-                    localStorage.setItem('token', currentToken);
-                    showAlert('loginAlert', 'Logged in successfully', 'success');
-                    document.getElementById('loginBtn').style.display = 'none';
-                    document.getElementById('logoutBtn').style.display = 'block';
-                    document.getElementById('userPhone').textContent = currentUser.phone;
-                    document.getElementById('loginSection').classList.remove('active');
-                    document.getElementById('dashboardSection').classList.add('active');
-                    loadDashboard();
-                } else {
-                    showAlert('loginAlert', data.message || 'Invalid OTP', 'error');
-                }
-            } catch (error) {
-                showAlert('loginAlert', 'Error: ' + error.message, 'error');
-            }
-        });
+  try {
+    const response = await fetch(`${API_BASE}/auth/verify-otp`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone, otp })
+    });
+    
+    const data = await response.json();
+    
+    if (data.success) {
+      currentToken = data.token;  // ✅ Real JWT token
+      currentUser = data.user;    // ✅ Real user data
+      
+      localStorage.setItem('token', currentToken);
+      showAlert('loginAlert', 'Logged in successfully', 'success');
+      
+      document.getElementById('loginBtn').style.display = 'none';
+      document.getElementById('logoutBtn').style.display = 'block';
+      document.getElementById('userPhone').textContent = currentUser.phone;
+      
+      document.getElementById('loginSection').classList.remove('active');
+      document.getElementById('dashboardSection').classList.add('active');
+      
+      loadDashboard();
+    } else {
+      showAlert('loginAlert', data.message || 'Invalid OTP', 'error');
+    }
+  } catch (error) {
+    showAlert('loginAlert', 'Error: ' + error.message, 'error');
+  }
+});
 
         // ===== NAVIGATION =====
         document.querySelectorAll('.menu-btn').forEach(btn => {
@@ -980,26 +987,40 @@
             loadProfile();
         }
 
-        // ===== INIT =====
-        window.addEventListener('load', () => {
-            const savedToken = localStorage.getItem('token');
-            if (savedToken) {
-                currentToken = savedToken;
-                fetch(`${API_BASE}/auth/me`, {
-                    headers: { 'Authorization': `Bearer ${currentToken}` }
-                }).then(r => r.json()).then(data => {
-                    if (data.success) {
-                        currentUser = data.user;
-                        document.getElementById('loginBtn').style.display = 'none';
-                        document.getElementById('logoutBtn').style.display = 'block';
-                        document.getElementById('userPhone').textContent = currentUser.phone;
-                        document.getElementById('loginSection').classList.remove('active');
-                        document.getElementById('dashboardSection').classList.add('active');
-                        loadDashboard();
-                    }
-                });
-            }
-        });
+// ===== INIT =====
+window.addEventListener('load', () => {
+  const savedToken = localStorage.getItem('token');
+  if (savedToken) {
+    currentToken = savedToken;
+    
+    // Verify token with backend
+    fetch(`${API_BASE}/auth/me`, {
+      headers: { 
+        'Authorization': `Bearer ${currentToken}`,
+        'Content-Type': 'application/json'
+      }
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        currentUser = data.user;
+        document.getElementById('loginBtn').style.display = 'none';
+        document.getElementById('logoutBtn').style.display = 'block';
+        document.getElementById('userPhone').textContent = currentUser.phone || currentUser.email || 'User';
+        document.getElementById('loginSection').classList.remove('active');
+        document.getElementById('dashboardSection').classList.add('active');
+        loadDashboard();
+      } else {
+        // Invalid token - clear it
+        localStorage.removeItem('token');
+      }
+    })
+    .catch(error => {
+      console.error('Auto-login failed:', error);
+      localStorage.removeItem('token');
+    });
+  }
+});
     </script>
 </body>
 </html>
