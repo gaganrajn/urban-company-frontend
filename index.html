@@ -510,7 +510,7 @@
         </div>
 
         <!-- Dashboard Section -->
-        <div id="dashboardSection" class="section" style="display:block;">
+        <div id="dashboardSection" class="section" style="display:none;">
             <div class="dashboard">
                 <!-- Sidebar -->
                 <aside class="sidebar">
@@ -728,18 +728,40 @@
 });
 
         // ===== NAVIGATION =====
-        document.querySelectorAll('.menu-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                document.querySelectorAll('.menu-btn').forEach(b => b.classList.remove('active'));
-                e.target.classList.add('active');
-                switchSection(e.target.dataset.section);
-            });
-        });
+document.querySelectorAll('.menu-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+        document.querySelectorAll('.menu-btn').forEach(b => b.classList.remove('active'));
+        e.target.classList.add('active');
+        const sectionId = e.target.dataset.section;
+        switchSection(sectionId);
+    });
+});
+
 
         function switchSection(sectionId) {
-            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-            document.getElementById(sectionId).classList.add('active');
-        }
+    // Hide all sections
+    document.querySelectorAll('.section').forEach(s => {
+        s.classList.remove('active');
+        s.style.display = 'none';
+    });
+    
+    // Show target section
+    const targetSection = document.getElementById(sectionId);
+    if (targetSection) {
+        targetSection.classList.add('active');
+        targetSection.style.display = 'block';
+    }
+    
+    // Load section data if needed
+    if (sectionId === 'services') {
+        loadServices();
+    } else if (sectionId === 'bookings') {
+        loadBookings();
+    } else if (sectionId === 'profile') {
+        loadProfile();
+    }
+}
+
 
         // ===== SERVICES =====
         async function loadServices() {
@@ -946,31 +968,32 @@
         }
 
         document.getElementById('updateProfileBtn').addEventListener('click', async () => {
-            try {
-                const response = await fetch(`${API_BASE}/users/profile`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${currentToken}`
-                    },
-                    body: JSON.stringify({
-                        name: document.getElementById('profileName').value,
-                        email: document.getElementById('profileEmail').value,
-                        address: document.getElementById('profileAddress').value,
-                        city: document.getElementById('profileCity').value
-                    })
-                });
-                const data = await response.json();
-                if (data.success) {
-                    showAlert('profileAlert', 'Profile updated successfully', 'success');
-                    currentUser = data.user;
-                } else {
-                    showAlert('profileAlert', data.message || 'Failed to update profile', 'error');
-                }
-            } catch (error) {
-                showAlert('profileAlert', 'Error: ' + error.message, 'error');
-            }
+    try {
+        const response = await fetch(`${API_BASE}/users/profile`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${currentToken}`
+            },
+            body: JSON.stringify({
+                name: document.getElementById('profileName').value,
+                email: document.getElementById('profileEmail').value,
+                address: document.getElementById('profileAddress').value,
+                city: document.getElementById('profileCity').value
+            })
         });
+        const data = await response.json();
+        if (data.success) {
+            showProfileAlert('Profile updated successfully', 'success');
+            currentUser = { ...currentUser, ...data.user };
+        } else {
+            showProfileAlert(data.message || 'Failed to update profile', 'error');
+        }
+    } catch (error) {
+        showProfileAlert('Error: ' + error.message, 'error');
+    }
+});
+
 
         // ===== UTILITIES =====
         function showAlert(elementId, message, type) {
@@ -986,6 +1009,128 @@
             loadBookings();
             loadProfile();
         }
+
+        // ===== MISSING FUNCTIONS - ADD THESE =====
+
+// Services Alert (missing)
+function showServicesAlert(message, type) {
+    showAlert('servicesAlert', message, type);
+}
+
+// Profile Alert (missing) 
+function showProfileAlert(message, type) {
+    showAlert('profileAlert', message, type);
+}
+
+// Bookings Alert (missing)
+function showBookingsAlert(message, type) {
+    const alert = document.createElement('div');
+    alert.className = `alert ${type === 'success' ? 'alert-success' : 'alert-error'} show`;
+    alert.textContent = message;
+    const bookingsSection = document.querySelector('#bookings');
+    bookingsSection.insertBefore(alert, bookingsSection.firstChild);
+    setTimeout(() => alert.remove(), 5000);
+}
+
+// Fix loadServices to use servicesAlert
+async function loadServices() {
+    try {
+        const response = await fetch(`${API_BASE}/services`);
+        const data = await response.json();
+        if (data.success) {
+            const grid = document.getElementById('servicesGrid');
+            grid.innerHTML = data.services.map(service => `
+                <div class="service-card" onclick="selectService('${service._id}', this, '${service.name}', ${service.basePrice})">
+                    <div class="service-icon">🔧</div>
+                    <div class="service-name">${service.name}</div>
+                    <div class="service-price">₹${service.basePrice}</div>
+                </div>
+            `).join('');
+        } else {
+            showServicesAlert('No services available', 'error');
+        }
+    } catch (error) {
+        showServicesAlert('Error loading services: ' + error.message, 'error');
+    }
+}
+
+// Fix loadBookings error handling
+async function loadBookings() {
+    try {
+        const response = await fetch(`${API_BASE}/bookings/user/my-bookings`, {
+            headers: { 'Authorization': `Bearer ${currentToken}` }
+        });
+        const data = await response.json();
+        if (data.success) {
+            const list = document.getElementById('bookingsList');
+            if (data.bookings.length === 0) {
+                list.innerHTML = '<p style="color: var(--text-secondary);">No bookings yet. Start booking a service!</p>';
+            } else {
+                list.innerHTML = data.bookings.map(booking => `
+                    <div class="card">
+                        <div class="card-header">
+                            <div>
+                                <div class="card-title">${booking.serviceId?.name || 'Service'}</div>
+                                <div style="font-size: 14px; color: var(--text-secondary); margin-top: 5px;">
+                                    ${new Date(booking.scheduledDate).toLocaleString()}
+                                </div>
+                            </div>
+                            <span class="badge badge-${booking.status}">${booking.status.toUpperCase()}</span>
+                        </div>
+                        <div class="card-content">
+                            <div class="info-item">
+                                <div class="info-label">Address</div>
+                                <div class="info-value" style="font-size: 14px;">${booking.address}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">Price</div>
+                                <div class="info-value">₹${booking.price || 0}</div>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+            if (typeof updateBookingStats === 'function') {
+                updateBookingStats(data.bookings);
+            }
+        }
+    } catch (error) {
+        console.error('Error loading bookings:', error);
+        document.getElementById('bookingsList').innerHTML = '<p style="color: var(--text-secondary);">Error loading bookings</p>';
+    }
+}
+
+// Update loadProfile to populate fields
+async function loadProfile() {
+    try {
+        const response = await fetch(`${API_BASE}/auth/me`, {
+            headers: { 'Authorization': `Bearer ${currentToken}` }
+        });
+        const data = await response.json();
+        if (data.success) {
+            document.getElementById('profileName').value = data.user.name || '';
+            document.getElementById('profileEmail').value = data.user.email || '';
+            document.getElementById('profileAddress').value = data.user.address || '';
+            document.getElementById('profileCity').value = data.user.city || '';
+        }
+    } catch (error) {
+        showProfileAlert('Error loading profile', 'error');
+    }
+}
+
+// Update loadDashboard
+function loadDashboard() {
+    loadServices();
+    loadBookings();
+    loadProfile();
+}
+
+// Fix updateBookingStats (safe version)
+function updateBookingStats(bookings = []) {
+    document.getElementById('totalBookings').textContent = bookings.length;
+    document.getElementById('completedBookings').textContent = bookings.filter(b => b.status === 'completed').length;
+    document.getElementById('pendingBookings').textContent = bookings.filter(b => b.status === 'pending').length;
+}
 
 // ===== INIT =====
 window.addEventListener('load', () => {
