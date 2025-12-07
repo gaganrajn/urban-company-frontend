@@ -36,7 +36,6 @@
             padding: 20px;
         }
 
-        /* Navigation */
         .navbar {
             background: var(--surface);
             border-bottom: 1px solid var(--border);
@@ -73,14 +72,12 @@
             font-size: 14px;
         }
 
-        /* Main Layout */
         .dashboard {
             display: grid;
             grid-template-columns: 250px 1fr;
             gap: 30px;
         }
 
-        /* Sidebar */
         .sidebar {
             background: var(--surface);
             padding: 20px;
@@ -121,7 +118,6 @@
             color: white;
         }
 
-        /* Main Content */
         .main-content {
             background: var(--surface);
             padding: 30px;
@@ -150,7 +146,6 @@
             padding-bottom: 15px;
         }
 
-        /* Forms */
         .form-group {
             margin-bottom: 20px;
         }
@@ -179,7 +174,6 @@
             box-shadow: 0 0 0 3px rgba(33, 134, 161, 0.1);
         }
 
-        /* Buttons */
         .btn {
             padding: 12px 24px;
             border: none;
@@ -222,7 +216,6 @@
             width: 100%;
         }
 
-        /* Cards */
         .card {
             background: var(--bg);
             border: 1px solid var(--border);
@@ -297,7 +290,6 @@
             color: var(--text);
         }
 
-        /* Services Grid */
         .services-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
@@ -340,14 +332,12 @@
             font-weight: bold;
         }
 
-        /* Bookings List */
         .booking-list {
             display: flex;
             flex-direction: column;
             gap: 20px;
         }
 
-        /* Modal */
         .modal {
             display: none;
             position: fixed;
@@ -382,10 +372,6 @@
             margin-bottom: 20px;
         }
 
-        .modal-header h3 {
-            margin: 0;
-        }
-
         .close-btn {
             background: none;
             border: none;
@@ -394,7 +380,6 @@
             color: var(--text-secondary);
         }
 
-        /* Alert Messages */
         .alert {
             padding: 15px;
             border-radius: 8px;
@@ -418,22 +403,6 @@
             border: 1px solid var(--danger);
         }
 
-        /* Loading State */
-        .spinner {
-            border: 3px solid var(--border);
-            border-top: 3px solid var(--primary);
-            border-radius: 50%;
-            width: 30px;
-            height: 30px;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        /* Rating */
         .rating {
             display: flex;
             gap: 5px;
@@ -450,7 +419,6 @@
             color: #ffc107;
         }
 
-        /* Responsive */
         @media (max-width: 768px) {
             .dashboard {
                 grid-template-columns: 1fr;
@@ -468,7 +436,6 @@
     </style>
 </head>
 <body>
-    <!-- Navigation -->
     <nav class="navbar">
         <div class="container">
             <div class="navbar-content">
@@ -484,9 +451,7 @@
         </div>
     </nav>
 
-    <!-- Main Dashboard -->
     <div class="container">
-        <!-- Login Section -->
         <div id="loginSection" class="section active">
             <div class="main-content" style="max-width: 400px; margin: 50px auto;">
                 <h2>Login to Urban Company</h2>
@@ -509,10 +474,8 @@
             </div>
         </div>
 
-        <!-- Dashboard Section -->
         <div id="dashboardSection" class="section" style="display:none;">
             <div class="dashboard">
-                <!-- Sidebar -->
                 <aside class="sidebar">
                     <ul class="sidebar-menu">
                         <li><button class="menu-btn active" data-section="home">🏠 Home</button></li>
@@ -522,9 +485,7 @@
                     </ul>
                 </aside>
 
-                <!-- Main Content -->
                 <div class="main-content">
-                    <!-- Home Section -->
                     <section id="home" class="section active">
                         <h2>Welcome to Urban Company</h2>
                         <p style="color: var(--text-secondary); margin-bottom: 30px;">Book trusted services from verified professionals in your area.</p>
@@ -548,7 +509,6 @@
                         <button class="btn btn-primary" onclick="switchSection('services')">📋 Book a Service</button>
                     </section>
 
-                    <!-- Services Section -->
                     <section id="services" class="section">
                         <h2>Book a Service</h2>
                         <div id="servicesAlert" class="alert"></div>
@@ -581,13 +541,11 @@
                         </div>
                     </section>
 
-                    <!-- Bookings Section -->
                     <section id="bookings" class="section">
                         <h2>My Bookings</h2>
                         <div id="bookingsList" class="booking-list"></div>
                     </section>
 
-                    <!-- Profile Section -->
                     <section id="profile" class="section">
                         <h2>My Profile</h2>
                         <div id="profileAlert" class="alert"></div>
@@ -619,7 +577,6 @@
         </div>
     </div>
 
-    <!-- Rating Modal -->
     <div id="ratingModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -644,8 +601,25 @@
         let currentToken = null;
         let selectedService = null;
         let ratingBookingId = null;
+        let selectedRating = 0;
 
-        // ===== AUTHENTICATION =====
+        function showAlert(elementId, message, type) {
+            const alert = document.getElementById(elementId);
+            alert.textContent = message;
+            alert.className = `alert ${type === 'success' ? 'alert-success' : 'alert-error'} show`;
+            setTimeout(() => alert.classList.remove('show'), 5000);
+        }
+
+        function switchSection(sectionId) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.getElementById(sectionId).classList.add('active');
+            
+            if (sectionId === 'services') loadServices();
+            else if (sectionId === 'bookings') loadBookings();
+            else if (sectionId === 'profile') loadProfile();
+        }
+
+        // LOGIN
         document.getElementById('loginBtn').addEventListener('click', () => {
             document.getElementById('loginSection').classList.add('active');
             document.getElementById('dashboardSection').classList.remove('active');
@@ -654,6 +628,7 @@
         document.getElementById('logoutBtn').addEventListener('click', () => {
             currentUser = null;
             currentToken = null;
+            localStorage.removeItem('token');
             document.getElementById('loginBtn').style.display = 'block';
             document.getElementById('logoutBtn').style.display = 'none';
             document.getElementById('loginSection').classList.add('active');
@@ -676,7 +651,7 @@
                 });
                 const data = await response.json();
                 if (data.success) {
-                    showAlert('loginAlert', 'OTP sent to your phone', 'success');
+                    showAlert('loginAlert', 'OTP sent successfully!', 'success');
                     document.getElementById('otpSection').style.display = 'block';
                 } else {
                     showAlert('loginAlert', data.message || 'Failed to send OTP', 'error');
@@ -687,88 +662,59 @@
         });
 
         document.getElementById('verifyOtpBtn').addEventListener('click', async () => {
-  const phone = document.getElementById('phoneInput').value;
-  const otp = document.getElementById('otpInput').value;
-  
-  if (!otp || otp.length !== 6) {
-    showAlert('loginAlert', 'Please enter a valid 6-digit OTP', 'error');
-    return;
-  }
+            const phone = document.getElementById('phoneInput').value;
+            const otp = document.getElementById('otpInput').value;
+            
+            if (!otp || otp.length !== 6) {
+                showAlert('loginAlert', 'Please enter a valid 6-digit OTP', 'error');
+                return;
+            }
 
-  try {
-    const response = await fetch(`${API_BASE}/auth/verify-otp`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ phone, otp })
-    });
-    
-    const data = await response.json();
-    
-    if (data.success) {
-      currentToken = data.token;  // ✅ Real JWT token
-      currentUser = data.user;    // ✅ Real user data
-      
-      localStorage.setItem('token', currentToken);
-      showAlert('loginAlert', 'Logged in successfully', 'success');
-      
-      document.getElementById('loginBtn').style.display = 'none';
-      document.getElementById('logoutBtn').style.display = 'block';
-      document.getElementById('userPhone').textContent = currentUser.phone;
-      
-      document.getElementById('loginSection').classList.remove('active');
-      document.getElementById('dashboardSection').classList.add('active');
-      
-      loadDashboard();
-    } else {
-      showAlert('loginAlert', data.message || 'Invalid OTP', 'error');
-    }
-  } catch (error) {
-    showAlert('loginAlert', 'Error: ' + error.message, 'error');
-  }
-});
+            try {
+                const response = await fetch(`${API_BASE}/auth/verify-otp`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ phone, otp })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    currentToken = data.token;
+                    currentUser = data.user;
+                    localStorage.setItem('token', currentToken);
+                    
+                    document.getElementById('loginBtn').style.display = 'none';
+                    document.getElementById('logoutBtn').style.display = 'block';
+                    document.getElementById('userPhone').textContent = currentUser.phone;
+                    document.getElementById('loginSection').classList.remove('active');
+                    document.getElementById('dashboardSection').classList.add('active');
+                    
+                    showAlert('loginAlert', 'Login successful!', 'success');
+                    loadDashboard();
+                } else {
+                    showAlert('loginAlert', data.message || 'Invalid OTP', 'error');
+                }
+            } catch (error) {
+                showAlert('loginAlert', 'Error: ' + error.message, 'error');
+            }
+        });
 
-        // ===== NAVIGATION =====
-document.querySelectorAll('.menu-btn').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-        document.querySelectorAll('.menu-btn').forEach(b => b.classList.remove('active'));
-        e.target.classList.add('active');
-        const sectionId = e.target.dataset.section;
-        switchSection(sectionId);
-    });
-});
+        // NAVIGATION
+        document.querySelectorAll('.menu-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('.menu-btn').forEach(b => b.classList.remove('active'));
+                e.target.classList.add('active');
+                switchSection(e.target.dataset.section);
+            });
+        });
 
-
-        function switchSection(sectionId) {
-    // Hide all sections
-    document.querySelectorAll('.section').forEach(s => {
-        s.classList.remove('active');
-        s.style.display = 'none';
-    });
-    
-    // Show target section
-    const targetSection = document.getElementById(sectionId);
-    if (targetSection) {
-        targetSection.classList.add('active');
-        targetSection.style.display = 'block';
-    }
-    
-    // Load section data if needed
-    if (sectionId === 'services') {
-        loadServices();
-    } else if (sectionId === 'bookings') {
-        loadBookings();
-    } else if (sectionId === 'profile') {
-        loadProfile();
-    }
-}
-
-
-        // ===== SERVICES =====
+        // SERVICES
         async function loadServices() {
             try {
                 const response = await fetch(`${API_BASE}/services`);
                 const data = await response.json();
-                if (data.success) {
+                if (data.success && data.services) {
                     const grid = document.getElementById('servicesGrid');
                     grid.innerHTML = data.services.map(service => `
                         <div class="service-card" onclick="selectService('${service._id}', this, '${service.name}', ${service.basePrice})">
@@ -831,7 +777,7 @@ document.querySelectorAll('.menu-btn').forEach(btn => {
             }
         });
 
-        // ===== BOOKINGS =====
+        // BOOKINGS
         async function loadBookings() {
             try {
                 const response = await fetch(`${API_BASE}/bookings/user/my-bookings`, {
@@ -840,14 +786,14 @@ document.querySelectorAll('.menu-btn').forEach(btn => {
                 const data = await response.json();
                 if (data.success) {
                     const list = document.getElementById('bookingsList');
-                    if (data.bookings.length === 0) {
-                        list.innerHTML = '<p style="color: var(--text-secondary);">No bookings yet. Start booking a service!</p>';
+                    if (!data.bookings || data.bookings.length === 0) {
+                        list.innerHTML = '<p style="color: var(--text-secondary);">No bookings yet</p>';
                     } else {
                         list.innerHTML = data.bookings.map(booking => `
                             <div class="card">
                                 <div class="card-header">
                                     <div>
-                                        <div class="card-title">${booking.serviceId.name}</div>
+                                        <div class="card-title">${booking.serviceId?.name || 'Service'}</div>
                                         <div style="font-size: 14px; color: var(--text-secondary); margin-top: 5px;">
                                             ${new Date(booking.scheduledDate).toLocaleString()}
                                         </div>
@@ -861,40 +807,73 @@ document.querySelectorAll('.menu-btn').forEach(btn => {
                                     </div>
                                     <div class="info-item">
                                         <div class="info-label">Price</div>
-                                        <div class="info-value">₹${booking.price}</div>
-                                    </div>
-                                    <div class="info-item">
-                                        <div class="info-label">Status</div>
-                                        <div class="info-value" style="font-size: 14px;">${booking.status}</div>
+                                        <div class="info-value">₹${booking.price || 0}</div>
                                     </div>
                                 </div>
-                                ${booking.status === 'completed' && !booking.rating ? `
-                                    <button class="btn btn-primary" onclick="openRatingModal('${booking._id}')">Rate Booking</button>
-                                ` : ''}
-                                ${booking.rating ? `
-                                    <div style="margin-top: 10px; color: var(--text-secondary);">
-                                        ⭐ ${booking.rating}/5 ${booking.review ? '- ' + booking.review : ''}
-                                    </div>
-                                ` : ''}
                             </div>
                         `).join('');
                     }
-                    updateBookingStats(data.bookings);
+                    updateBookingStats(data.bookings || []);
                 }
             } catch (error) {
                 console.error('Error loading bookings:', error);
             }
         }
 
-        function updateBookingStats(bookings) {
+        function updateBookingStats(bookings = []) {
             document.getElementById('totalBookings').textContent = bookings.length;
             document.getElementById('completedBookings').textContent = bookings.filter(b => b.status === 'completed').length;
             document.getElementById('pendingBookings').textContent = bookings.filter(b => b.status === 'pending').length;
         }
 
-        // ===== RATING =====
+        // PROFILE
+        async function loadProfile() {
+            try {
+                const response = await fetch(`${API_BASE}/auth/me`, {
+                    headers: { 'Authorization': `Bearer ${currentToken}` }
+                });
+                const data = await response.json();
+                if (data.success) {
+                    document.getElementById('profileName').value = data.user.name || '';
+                    document.getElementById('profileEmail').value = data.user.email || '';
+                    document.getElementById('profileAddress').value = data.user.address || '';
+                    document.getElementById('profileCity').value = data.user.city || '';
+                }
+            } catch (error) {
+                showAlert('profileAlert', 'Error loading profile', 'error');
+            }
+        }
+
+        document.getElementById('updateProfileBtn').addEventListener('click', async () => {
+            try {
+                const response = await fetch(`${API_BASE}/users/profile`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${currentToken}`
+                    },
+                    body: JSON.stringify({
+                        name: document.getElementById('profileName').value,
+                        email: document.getElementById('profileEmail').value,
+                        address: document.getElementById('profileAddress').value,
+                        city: document.getElementById('profileCity').value
+                    })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    showAlert('profileAlert', 'Profile updated successfully', 'success');
+                } else {
+                    showAlert('profileAlert', data.message || 'Failed to update', 'error');
+                }
+            } catch (error) {
+                showAlert('profileAlert', 'Error: ' + error.message, 'error');
+            }
+        });
+
+        // RATING
         function openRatingModal(bookingId) {
             ratingBookingId = bookingId;
+            selectedRating = 0;
             document.getElementById('ratingModal').classList.add('active');
             renderRatingStars();
         }
@@ -911,7 +890,6 @@ document.querySelectorAll('.menu-btn').forEach(btn => {
             }
         }
 
-        let selectedRating = 0;
         function selectRating(rating) {
             selectedRating = rating;
             document.querySelectorAll('#ratingStars .star').forEach((star, index) => {
@@ -945,227 +923,41 @@ document.querySelectorAll('.menu-btn').forEach(btn => {
                     alert('Thank you for your rating!');
                 }
             } catch (error) {
-                alert('Error submitting rating: ' + error.message);
+                alert('Error: ' + error.message);
             }
         });
 
-        // ===== PROFILE =====
-        async function loadProfile() {
-            try {
-                const response = await fetch(`${API_BASE}/auth/me`, {
-                    headers: { 'Authorization': `Bearer ${currentToken}` }
-                });
-                const data = await response.json();
-                if (data.success) {
-                    document.getElementById('profileName').value = data.user.name || '';
-                    document.getElementById('profileEmail').value = data.user.email || '';
-                    document.getElementById('profileAddress').value = data.user.address || '';
-                    document.getElementById('profileCity').value = data.user.city || '';
-                }
-            } catch (error) {
-                showAlert('profileAlert', 'Error loading profile', 'error');
-            }
-        }
-
-        document.getElementById('updateProfileBtn').addEventListener('click', async () => {
-    try {
-        const response = await fetch(`${API_BASE}/users/profile`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${currentToken}`
-            },
-            body: JSON.stringify({
-                name: document.getElementById('profileName').value,
-                email: document.getElementById('profileEmail').value,
-                address: document.getElementById('profileAddress').value,
-                city: document.getElementById('profileCity').value
-            })
-        });
-        const data = await response.json();
-        if (data.success) {
-            showProfileAlert('Profile updated successfully', 'success');
-            currentUser = { ...currentUser, ...data.user };
-        } else {
-            showProfileAlert(data.message || 'Failed to update profile', 'error');
-        }
-    } catch (error) {
-        showProfileAlert('Error: ' + error.message, 'error');
-    }
-});
-
-
-        // ===== UTILITIES =====
-        function showAlert(elementId, message, type) {
-            const alert = document.getElementById(elementId);
-            alert.textContent = message;
-            alert.className = `alert ${type === 'success' ? 'alert-success' : 'alert-error'} show`;
-            setTimeout(() => alert.classList.remove('show'), 5000);
-        }
-
-        // ===== LOAD DASHBOARD =====
         function loadDashboard() {
             loadServices();
             loadBookings();
             loadProfile();
         }
 
-        // ===== MISSING FUNCTIONS - ADD THESE =====
-
-// Services Alert (missing)
-function showServicesAlert(message, type) {
-    showAlert('servicesAlert', message, type);
-}
-
-// Profile Alert (missing) 
-function showProfileAlert(message, type) {
-    showAlert('profileAlert', message, type);
-}
-
-// Bookings Alert (missing)
-function showBookingsAlert(message, type) {
-    const alert = document.createElement('div');
-    alert.className = `alert ${type === 'success' ? 'alert-success' : 'alert-error'} show`;
-    alert.textContent = message;
-    const bookingsSection = document.querySelector('#bookings');
-    bookingsSection.insertBefore(alert, bookingsSection.firstChild);
-    setTimeout(() => alert.remove(), 5000);
-}
-
-// Fix loadServices to use servicesAlert
-async function loadServices() {
-    try {
-        const response = await fetch(`${API_BASE}/services`);
-        const data = await response.json();
-        if (data.success) {
-            const grid = document.getElementById('servicesGrid');
-            grid.innerHTML = data.services.map(service => `
-                <div class="service-card" onclick="selectService('${service._id}', this, '${service.name}', ${service.basePrice})">
-                    <div class="service-icon">🔧</div>
-                    <div class="service-name">${service.name}</div>
-                    <div class="service-price">₹${service.basePrice}</div>
-                </div>
-            `).join('');
-        } else {
-            showServicesAlert('No services available', 'error');
-        }
-    } catch (error) {
-        showServicesAlert('Error loading services: ' + error.message, 'error');
-    }
-}
-
-// Fix loadBookings error handling
-async function loadBookings() {
-    try {
-        const response = await fetch(`${API_BASE}/bookings/user/my-bookings`, {
-            headers: { 'Authorization': `Bearer ${currentToken}` }
-        });
-        const data = await response.json();
-        if (data.success) {
-            const list = document.getElementById('bookingsList');
-            if (data.bookings.length === 0) {
-                list.innerHTML = '<p style="color: var(--text-secondary);">No bookings yet. Start booking a service!</p>';
-            } else {
-                list.innerHTML = data.bookings.map(booking => `
-                    <div class="card">
-                        <div class="card-header">
-                            <div>
-                                <div class="card-title">${booking.serviceId?.name || 'Service'}</div>
-                                <div style="font-size: 14px; color: var(--text-secondary); margin-top: 5px;">
-                                    ${new Date(booking.scheduledDate).toLocaleString()}
-                                </div>
-                            </div>
-                            <span class="badge badge-${booking.status}">${booking.status.toUpperCase()}</span>
-                        </div>
-                        <div class="card-content">
-                            <div class="info-item">
-                                <div class="info-label">Address</div>
-                                <div class="info-value" style="font-size: 14px;">${booking.address}</div>
-                            </div>
-                            <div class="info-item">
-                                <div class="info-label">Price</div>
-                                <div class="info-value">₹${booking.price || 0}</div>
-                            </div>
-                        </div>
-                    </div>
-                `).join('');
+        // AUTO LOGIN
+        window.addEventListener('load', () => {
+            const savedToken = localStorage.getItem('token');
+            if (savedToken) {
+                currentToken = savedToken;
+                fetch(`${API_BASE}/auth/me`, {
+                    headers: { 'Authorization': `Bearer ${currentToken}` }
+                })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        currentUser = data.user;
+                        document.getElementById('loginBtn').style.display = 'none';
+                        document.getElementById('logoutBtn').style.display = 'block';
+                        document.getElementById('userPhone').textContent = currentUser.phone;
+                        document.getElementById('loginSection').classList.remove('active');
+                        document.getElementById('dashboardSection').classList.add('active');
+                        loadDashboard();
+                    } else {
+                        localStorage.removeItem('token');
+                    }
+                })
+                .catch(() => localStorage.removeItem('token'));
             }
-            if (typeof updateBookingStats === 'function') {
-                updateBookingStats(data.bookings);
-            }
-        }
-    } catch (error) {
-        console.error('Error loading bookings:', error);
-        document.getElementById('bookingsList').innerHTML = '<p style="color: var(--text-secondary);">Error loading bookings</p>';
-    }
-}
-
-// Update loadProfile to populate fields
-async function loadProfile() {
-    try {
-        const response = await fetch(`${API_BASE}/auth/me`, {
-            headers: { 'Authorization': `Bearer ${currentToken}` }
         });
-        const data = await response.json();
-        if (data.success) {
-            document.getElementById('profileName').value = data.user.name || '';
-            document.getElementById('profileEmail').value = data.user.email || '';
-            document.getElementById('profileAddress').value = data.user.address || '';
-            document.getElementById('profileCity').value = data.user.city || '';
-        }
-    } catch (error) {
-        showProfileAlert('Error loading profile', 'error');
-    }
-}
-
-// Update loadDashboard
-function loadDashboard() {
-    loadServices();
-    loadBookings();
-    loadProfile();
-}
-
-// Fix updateBookingStats (safe version)
-function updateBookingStats(bookings = []) {
-    document.getElementById('totalBookings').textContent = bookings.length;
-    document.getElementById('completedBookings').textContent = bookings.filter(b => b.status === 'completed').length;
-    document.getElementById('pendingBookings').textContent = bookings.filter(b => b.status === 'pending').length;
-}
-
-// ===== INIT =====
-window.addEventListener('load', () => {
-  const savedToken = localStorage.getItem('token');
-  if (savedToken) {
-    currentToken = savedToken;
-    
-    // Verify token with backend
-    fetch(`${API_BASE}/auth/me`, {
-      headers: { 
-        'Authorization': `Bearer ${currentToken}`,
-        'Content-Type': 'application/json'
-      }
-    })
-    .then(response => response.json())
-    .then(data => {
-      if (data.success) {
-        currentUser = data.user;
-        document.getElementById('loginBtn').style.display = 'none';
-        document.getElementById('logoutBtn').style.display = 'block';
-        document.getElementById('userPhone').textContent = currentUser.phone || currentUser.email || 'User';
-        document.getElementById('loginSection').classList.remove('active');
-        document.getElementById('dashboardSection').classList.add('active');
-        loadDashboard();
-      } else {
-        // Invalid token - clear it
-        localStorage.removeItem('token');
-      }
-    })
-    .catch(error => {
-      console.error('Auto-login failed:', error);
-      localStorage.removeItem('token');
-    });
-  }
-});
     </script>
 </body>
 </html>
